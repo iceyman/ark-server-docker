@@ -1,0 +1,54 @@
+services:
+  asa-server:
+    # Set this to the image you push to GHCR after running ./deploy_ghcr.sh
+    image: ghcr.io/iceyman/ark-survival-ascended-linux-container-image-docker:latest
+    container_name: asa-server
+
+    # CRITICAL: Use host network mode for high-performance games
+    # This exposes the container's ports directly on the host machine.
+    network_mode: host
+    
+    # CRITICAL: Set kernel memory map limits required for ARK/Wine stability
+    sysctls:
+      vm.max_map_count: 16777216
+
+    # Data Persistence
+    # This mounts your local 'serverdata' folder to the game's home directory.
+    # ALL config files, save files, and mods will live here.
+    volumes:
+      - ./serverdata:/home/steam/server
+      - ./logs:/home/steam/logs
+
+    # Restart Policy: Always restart unless explicitly stopped
+    restart: unless-stopped
+
+    # --- Server Customization via Environment Variables ---
+    environment:
+      # --- General Server Settings ---
+      - SERVER_NAME="My Awesome ASA Server"
+      - SERVER_PASSWORD=""
+      - SERVER_ADMIN_PASSWORD="supersecretadminpassword"
+      - SERVER_MAP="TheIsland" # Default map is TheIsland
+      - MAX_PLAYERS=20
+
+      # --- Mod and Game Mode ---
+      # Add CurseForge Mod IDs, comma-separated (e.g., 939228,928597)
+      - MOD_LIST=""
+      - SERVER_MODE=PVP  # Set to PVP or PVE
+
+      # --- Port Configuration ---
+      # Game traffic (default 7777), Query traffic (default 27015), RCON (default 27020)
+      - GAME_PORT=7777
+      - QUERY_PORT=27015
+      - RCON_PORT=27020
+
+      # --- Rate Multipliers ---
+      - XP_MULTIPLIER=1.0
+      - HARVEST_MULTIPLIER=1.0
+      - TAMING_SPEED=1.0
+      - HATCHING_SPEED=1.0
+
+      # --- Additional Launch Arguments (Flags) ---
+      # Important Flags: -crossplay and -ForceModUpdate
+      # Now includes ?PreventHibernation=True for stability
+      - ADDITIONAL_ARGS="-crossplay -ForceModUpdate -ClusterID=MyCluster ?PreventHibernation=True"
