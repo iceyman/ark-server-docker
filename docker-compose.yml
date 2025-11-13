@@ -1,24 +1,19 @@
-#version: "3.8"
+#version: '3.9'
 
 services:
-  asa_server:
-    # Uses the dedicated dev tag while in development, but the deploy script
-    # ensures that ghcr.io/iceyman/ark-server-docker:latest is also updated
+  asa-dedicated:
+    # IMPORTANT: Reference the stable production tag for reliability.
     image: ghcr.io/iceyman/ark-server-docker:latest
     container_name: asa-dedicated
     restart: unless-stopped
-    init: true # CRITICAL: Ensures graceful shutdown and prevents zombie processes
+    init: true # Use Tini init system for graceful shutdowns and zombie process prevention.
 
-    # CRITICAL: Increases mmap counts for Wine/Ark stability on Linux kernels
+    # CRITICAL: Linux kernel settings required for Ark Ascended stability on Wine.
     sysctls:
       net.core.somaxconn: 65535
+      net.ipv4.ip_local_port_range: "1024 65535"
       vm.max_map_count: 262144
 
-    # Mount the server directory for persistence and configuration
-    volumes:
-      - ./serverdata:/home/steam/server
-
-    # Expose necessary ports
     ports:
       # Game Client (Default: 7777 UDP)
       - "7777:7777/udp"
@@ -27,34 +22,47 @@ services:
       # RCON Port (Default: 27020 TCP) - Only needed if using RCON tools
       - "27020:27020/tcp"
 
-    # Environment Variables for the ASA Server
+    volumes:
+      # Mount the host directory for persistent game data and config files
+      - ./serverdata:/home/steam/server
+
+    # Set the game installation path (must match GAME_DIR in Dockerfile)
     environment:
-      # --- BASIC CONFIGURATION ---
-      SERVER_NAME: "My Official Docker ASA Server" # Name that shows up in the Ark browser
-      SERVER_MAP: "TheIsland_WP"                   # Available Maps: TheIsland_WP, ScorchedEarth_WP, Svartalfheim_WP
-      MAX_PLAYERS: 10                              # Max player count (must be same value as -WinLiveMaxPlayers)
-      SERVER_PASSWORD: "CHANGE_THIS_PASSWORD"      # Password to join server (Leave empty for no password)
-      SERVER_ADMIN_PASSWORD: "CHANGE_THIS_ADMIN"   # Password for in-game admin commands
+      # --- ESSENTIAL SERVER SETTINGS ---
+      SERVER_NAME: "My Awesome ASA Server"
+      SERVER_PASSWORD: "MUST_BE_SECURE" # <-- CHANGE THIS
+      SERVER_ADMIN_PASSWORD: "MUST_BE_SUPER_SECRET" # <-- CHANGE THIS
+      SERVER_MAP: "TheIsland_WP" # Use _WP suffix for the main map.
 
       # --- PORTS (Match the 'ports' section above) ---
       GAME_PORT: 7777
       QUERY_PORT: 27015
       RCON_PORT: 27020
 
-      # --- MODS ---
-      # Comma-separated list of Mod IDs (CurseForge). Leave empty ("") for no mods.
-      MOD_LIST: "900000,900001" 
+      # --- MODS (Comma-separated CurseForge Mod IDs) ---
+      MOD_LIST: "" # Example: "900000,900001"
 
-      # --- GAME MODE ---
-      SERVER_MODE: "PVE" # Options: PVE or PVP
-
-      # --- RATE MULTIPLIERS (1.0 is default, 2.0 is double speed) ---
-      XP_MULTIPLIER: 1.0
-      HARVEST_MULTIPLIER: 1.0
-      TAMING_SPEED: 1.0
-      HATCHING_SPEED: 1.0
-      MATURATION_SPEED: 1.0 # Uses the Baby Cuddle Interval Multiplier setting
-
-      # --- ADVANCED/CRITICAL ARGUMENTS ---
-      # CRITICAL: Prevents server freezing/hibernation when no one is online
+      # --- ADVANCED LAUNCH ARGUMENTS ---
       ADDITIONAL_ARGS: "-crossplay -ForceModUpdate ?PreventHibernation=True"
+      
+      # --- RATE MULTIPLIERS (Adjust to your preferred difficulty/speed) ---
+      TAMING_SPEED: 5.0
+      HARVEST_AMOUNT: 3.0
+      XP_MULTIPLIER: 2.0
+      MAX_PLAYERS: 70
+      
+      # --- BREEDING MULTIPLIERS ---
+      MATURATION_SPEED: 10.0
+      EGG_HATCH_SPEED: 10.0
+      BABY_FOOD_CONSUMPTION: 0.5
+      BABY_CUDDLE_INTERVAL: 0.1
+      BABY_IMPRINTING_SCALE: 1.0
+      BABY_IMPRINT_AMOUNT: 1.0
+
+    # Health Check ensures Docker knows when the server is actually ready to play.
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z -w5 localhost 27020 || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
