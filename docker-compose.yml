@@ -1,51 +1,60 @@
-# This file defines the configuration for your ASA dedicated server container.
-# It uses environment variables for easy customization.
+#version: "3.8"
 
 services:
-  asa-server:
-    # Use the image you built and pushed to your GHCR repository
+  asa_server:
+    # Uses the dedicated dev tag while in development, but the deploy script
+    # ensures that ghcr.io/iceyman/ark-server-docker:latest is also updated
     image: ghcr.io/iceyman/ark-server-docker-dev:latest
-    
-    # CRITICAL: Use host network mode to avoid complex port mapping issues and ensure RCON/query works reliably.
-    network_mode: host
-    
-    # CRITICAL: Increase kernel limits for stability when running Wine/Ark
+    container_name: asa-dedicated
+    restart: unless-stopped
+    init: true # CRITICAL: Ensures graceful shutdown and prevents zombie processes
+
+    # CRITICAL: Increases mmap counts for Wine/Ark stability on Linux kernels
     sysctls:
-      vm.max_map_count: 16777216
-    
-    # Persistent storage for game files, saved data, and configuration
+      net.core.somaxconn: 65535
+      vm.max_map_count: 262144
+
+    # Mount the server directory for persistence and configuration
     volumes:
-      - ./serverdata:/home/steam/server/ASA
-      
-    # Restart policy ensures the server attempts to recover from crashes
-    restart: always
+      - ./serverdata:/home/steam/server
 
+    # Expose necessary ports
+    ports:
+      # Game Client (Default: 7777 UDP)
+      - "7777:7777/udp"
+      # Steam Query Port (Default: 27015 UDP)
+      - "27015:27015/udp"
+      # RCON Port (Default: 27020 TCP) - Only needed if using RCON tools
+      - "27020:27020/tcp"
+
+    # Environment Variables for the ASA Server
     environment:
-      # --- General Server Settings ---
-      - SERVER_NAME="My Awesome ASA Server"
-      - SERVER_PASSWORD=""
-      - SERVER_ADMIN_PASSWORD="supersecretadminpassword"
-      - SERVER_MAP="TheIsland"
-      - MAX_PLAYERS=20
+      # --- BASIC CONFIGURATION ---
+      SERVER_NAME: "My Official Docker ASA Server" # Name that shows up in the Ark browser
+      SERVER_MAP: "TheIsland_WP"                   # Available Maps: TheIsland, ScorchedEarth
+      MAX_PLAYERS: 10                              # Max player count (must be same value as -WinLiveMaxPlayers)
+      SERVER_PASSWORD: "CHANGE_THIS_PASSWORD"      # Password to join server (Leave empty for no password)
+      SERVER_ADMIN_PASSWORD: "CHANGE_THIS_ADMIN"   # Password for in-game admin commands
 
-      # --- Mod and Game Mode ---
-      - MOD_LIST="939228,928597"  # Replace with your CurseForge Mod IDs (comma-separated)
-      - SERVER_MODE=PVP          # Change to PVE for Player vs. Environment
+      # --- PORTS (Match the 'ports' section above) ---
+      GAME_PORT: 7777
+      QUERY_PORT: 27015
+      RCON_PORT: 27020
 
-      # --- Port Configuration ---
-      - GAME_PORT=7777           # UDP Port for game connection
-      - QUERY_PORT=27015         # UDP Port for server list query (Steam/Epic)
-      - RCON_PORT=27020          # TCP Port for RCON tools
+      # --- MODS ---
+      # Comma-separated list of Mod IDs (CurseForge). Leave empty ("") for no mods.
+      MOD_LIST: "900000,900001" 
 
-      # --- Rate Multipliers ---
-      - XP_MULTIPLIER=1.0
-      - HARVEST_MULTIPLIER=1.0
-      - TAMING_SPEED=1.0
-      - HATCHING_SPEED=1.0
-      - MATURATION_SPEED=1.0
+      # --- GAME MODE ---
+      SERVER_MODE: "PVE" # Options: PVE or PVP
 
-      # --- Additional Launch Arguments ---
-      # Flags are passed directly to the server executable.
-      # WinLive is for crossplay. PreventHibernation is CRITICAL for mod stability.
-      # NOTE: MaxPlayers is handled dynamically in the script to avoid conflicts.
-      - ADDITIONAL_ARGS="-crossplay -ForceModUpdate ?PreventHibernation=True"
+      # --- RATE MULTIPLIERS (1.0 is default, 2.0 is double speed) ---
+      XP_MULTIPLIER: 1.0
+      HARVEST_MULTIPLIER: 1.0
+      TAMING_SPEED: 1.0
+      HATCHING_SPEED: 1.0
+      MATURATION_SPEED: 1.0 # Uses the Baby Cuddle Interval Multiplier setting
+
+      # --- ADVANCED/CRITICAL ARGUMENTS ---
+      # CRITICAL: Prevents server freezing/hibernation when no one is online
+      ADDITIONAL_ARGS: "?PreventHibernation=True"
