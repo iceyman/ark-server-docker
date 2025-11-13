@@ -4,7 +4,7 @@ services:
   asa_server:
     # Uses the dedicated dev tag while in development, but the deploy script
     # ensures that ghcr.io/iceyman/ark-server-docker:latest is also updated
-    image: ghcr.io/iceyman/ark-server-docker-dev:latest
+    image: ghcr.io/iceyman/ark-server-docker:latest
     container_name: asa-dedicated
     restart: unless-stopped
     init: true # CRITICAL: Ensures graceful shutdown and prevents zombie processes
