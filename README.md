@@ -85,13 +85,3 @@ docker compose restart
 If you experience resource despawns, severe lag, or mods failing, this is often due to ARK's "hibernation" feature. This has been preemptively solved by the server's launch argument:
 
 * ?PreventHibernation=True (In ADDITIONAL\_ARGS)
-
-### **Deployment Commands**
-
-If you make changes to the Dockerfile or install\_and\_run.sh, you must use the deploy\_ghcr.sh script to update the remote image:
-
-\# Log in to GitHub Container Registry (only needed once)  
-docker login ghcr.io \-u iceyman
-
-\# Build and push both 'dev' and 'stable' tags  
-./deploy\_ghcr.sh  
