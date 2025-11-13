@@ -8,12 +8,6 @@ services:
     restart: unless-stopped
     init: true # Use Tini init system for graceful shutdowns and zombie process prevention.
 
-    # CRITICAL: Linux kernel settings required for Ark Ascended stability on Wine.
-    sysctls:
-      net.core.somaxconn: 65535
-      net.ipv4.ip_local_port_range: "1024 65535"
-      vm.max_map_count: 262144
-
     ports:
       # Game Client (Default: 7777 UDP)
       - "7777:7777/udp"
