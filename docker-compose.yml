@@ -1,54 +1,51 @@
+# This file defines the configuration for your ASA dedicated server container.
+# It uses environment variables for easy customization.
+
 services:
   asa-server:
-    # Set this to the image you push to GHCR after running ./deploy_ghcr.sh
-    image: ghcr.io/iceyman/ark-survival-ascended-linux-container-image-docker:latest
-    container_name: asa-server
-
-    # CRITICAL: Use host network mode for high-performance games
-    # This exposes the container's ports directly on the host machine.
+    # Use the image you built and pushed to your GHCR repository
+    image: ghcr.io/iceyman/ark-server-docker-dev:latest
+    
+    # CRITICAL: Use host network mode to avoid complex port mapping issues and ensure RCON/query works reliably.
     network_mode: host
     
-    # CRITICAL: Set kernel memory map limits required for ARK/Wine stability
+    # CRITICAL: Increase kernel limits for stability when running Wine/Ark
     sysctls:
       vm.max_map_count: 16777216
-
-    # Data Persistence
-    # This mounts your local 'serverdata' folder to the game's home directory.
-    # ALL config files, save files, and mods will live here.
+    
+    # Persistent storage for game files, saved data, and configuration
     volumes:
-      - ./serverdata:/home/steam/server
-      - ./logs:/home/steam/logs
+      - ./serverdata:/home/steam/server/ASA
+      
+    # Restart policy ensures the server attempts to recover from crashes
+    restart: always
 
-    # Restart Policy: Always restart unless explicitly stopped
-    restart: unless-stopped
-
-    # --- Server Customization via Environment Variables ---
     environment:
       # --- General Server Settings ---
       - SERVER_NAME="My Awesome ASA Server"
       - SERVER_PASSWORD=""
       - SERVER_ADMIN_PASSWORD="supersecretadminpassword"
-      - SERVER_MAP="TheIsland" # Default map is TheIsland
+      - SERVER_MAP="TheIsland"
       - MAX_PLAYERS=20
 
       # --- Mod and Game Mode ---
-      # Add CurseForge Mod IDs, comma-separated (e.g., 939228,928597)
-      - MOD_LIST=""
-      - SERVER_MODE=PVP  # Set to PVP or PVE
+      - MOD_LIST="939228,928597"  # Replace with your CurseForge Mod IDs (comma-separated)
+      - SERVER_MODE=PVP          # Change to PVE for Player vs. Environment
 
       # --- Port Configuration ---
-      # Game traffic (default 7777), Query traffic (default 27015), RCON (default 27020)
-      - GAME_PORT=7777
-      - QUERY_PORT=27015
-      - RCON_PORT=27020
+      - GAME_PORT=7777           # UDP Port for game connection
+      - QUERY_PORT=27015         # UDP Port for server list query (Steam/Epic)
+      - RCON_PORT=27020          # TCP Port for RCON tools
 
       # --- Rate Multipliers ---
       - XP_MULTIPLIER=1.0
       - HARVEST_MULTIPLIER=1.0
       - TAMING_SPEED=1.0
       - HATCHING_SPEED=1.0
+      - MATURATION_SPEED=1.0
 
-      # --- Additional Launch Arguments (Flags) ---
-      # Important Flags: -crossplay and -ForceModUpdate
-      # Now includes ?PreventHibernation=True for stability
-      - ADDITIONAL_ARGS="-crossplay -ForceModUpdate -ClusterID=MyCluster ?PreventHibernation=True"
+      # --- Additional Launch Arguments ---
+      # Flags are passed directly to the server executable.
+      # WinLive is for crossplay. PreventHibernation is CRITICAL for mod stability.
+      # NOTE: MaxPlayers is handled dynamically in the script to avoid conflicts.
+      - ADDITIONAL_ARGS="-crossplay -ForceModUpdate ?PreventHibernation=True"
