@@ -17,20 +17,9 @@ This setup requires Docker and Docker Compose (V2) to be installed on your host 
 
 3. **Configure:** Open docker-compose.yml and modify the environment variables (e.g., SERVER\_NAME, SERVER\_PASSWORD, MOD\_LIST).
 
-### **2\. Building the Image**
+### **2\. Launching the Server**
 
-Since you are using a development image, you must build and push it to your GitHub Container Registry (GHCR) before running.
-
-1. **Log in to GHCR:**  
-   docker login ghcr.io \-u iceyman  
-   \# Paste your GitHub Personal Access Token (PAT) when prompted for the password.
-
-2. **Run Deployment Script:** This script builds the image locally and pushes it to GHCR.  
-   ./deploy\_ghcr.sh
-
-### **3\. Launching the Server**
-
-Once the image is built and pushed, start the container:
+The image will be automatically pulled from the GitHub Container Registry (GHCR) when you run the launch command.
 
 docker compose up \-d
 
