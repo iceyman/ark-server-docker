@@ -10,10 +10,9 @@ Follow these steps to get your server running within minutes.
 
 Create a new folder for your server (e.g., asa-docker). Inside that folder, create or modify the following files.
 
-| File Name | Purpose |
-| :---- | :---- |
-| docker-compose.yml | The primary configuration file, defines server name, passwords, ports, and rates. **You must edit this file.** |
-| serverdata (Folder) | This folder will be created automatically and stores the game installation, saved data, and configuration files. |
+| File Name | Purpose |  
+| docker-compose.yml | The primary configuration file, defines server name, passwords, ports, and rates. You must edit this file. |  
+| serverdata (Folder) | This folder will be created automatically and stores the game installation, saved data, and configuration files. |  
 | Whitelist.txt | (Optional) Place Steam IDs here to enable whitelisting. |
 
 ### **2\. 🚀 Launching the Server**
@@ -42,12 +41,11 @@ The core configuration is handled via environment variables in docker-compose.ym
 
 ### **Essential Settings:**
 
-| Variable | Description | Action Required |
-| :---- | :---- | :---- |
-| SERVER\_NAME | Name displayed in the ARK server browser. | Customize |
-| SERVER\_PASSWORD | Password required to join the game. | **MUST CHANGE** |
-| SERVER\_ADMIN\_PASSWORD | Password for in-game admin commands. | **MUST CHANGE** |
-| SERVER\_MAP | e.g., TheIsland\_WP (The Island), ScorchedEarth\_WP. | Customize |
+| Variable | Description | Action Required |  
+| SERVER\_NAME | Name displayed in the ARK server browser. | Customize |  
+| SERVER\_PASSWORD | Password required to join the game. | MUST CHANGE |  
+| SERVER\_ADMIN\_PASSWORD | Password for in-game admin commands. | MUST CHANGE |  
+| SERVER\_MAP | e.g., TheIsland\_WP (The Island), ScorchedEarth\_WP. | Customize |  
 | MOD\_LIST | Comma-separated list of CurseForge Mod IDs (e.g., "900000,900001"). | Customize |
 
 ### **Access Control (Whitelisting)**
@@ -63,6 +61,7 @@ If the file is not empty, the script automatically adds the critical \-ServerAll
 
 This container includes several features for long-term stability:
 
+* **Container Health Check:** Docker periodically probes the RCON port (27020) to determine if the server application is fully running and responsive, not just whether the container process is active. This helps orchestration tools reliably manage the server status.  
 * **Graceful Shutdown (init: true):** The container uses the tini init system to ensure a clean shutdown when docker compose down is executed, preventing corrupted saves.  
 * **Kernel Fixes (sysctls):** Required Linux kernel settings (vm.max\_map\_count) are automatically applied to prevent crashes related to Ark's memory usage in the Wine environment.  
 * **Automatic Config Backup:** Every time the container starts, copies of Game.ini and GameUserSettings.ini are saved to ./serverdata/.../Backup/.  
