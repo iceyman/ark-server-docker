@@ -57,4 +57,4 @@ services:
 
       # --- ADVANCED/CRITICAL ARGUMENTS ---
       # CRITICAL: Prevents server freezing/hibernation when no one is online
-      ADDITIONAL_ARGS: "?PreventHibernation=True"
+      ADDITIONAL_ARGS: "-crossplay -ForceModUpdate ?PreventHibernation=True"
