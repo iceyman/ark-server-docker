@@ -9,8 +9,8 @@ This setup requires Docker and Docker Compose (V2) to be installed on your host 
 ### **1\. Preparation**
 
 1. **Clone the Repository:**  
-   git clone \[https://github.com/iceyman/ark-server-docker-dev.git\](https://github.com/iceyman/ark-server-docker-dev.git)  
-   cd ark-server-docker-dev
+   git clone \[https://github.com/iceyman/ark-server-docker.git\](https://github.com/iceyman/ark-server-docker.git)  
+   cd ark-server-docker
 
 2. **Create Data Directory:**  
    mkdir serverdata
