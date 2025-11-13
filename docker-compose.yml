@@ -31,7 +31,7 @@ services:
     environment:
       # --- BASIC CONFIGURATION ---
       SERVER_NAME: "My Official Docker ASA Server" # Name that shows up in the Ark browser
-      SERVER_MAP: "TheIsland_WP"                   # Available Maps: TheIsland, ScorchedEarth
+      SERVER_MAP: "TheIsland_WP"                   # Available Maps: TheIsland_WP, ScorchedEarth_WP, Svartalfheim_WP
       MAX_PLAYERS: 10                              # Max player count (must be same value as -WinLiveMaxPlayers)
       SERVER_PASSWORD: "CHANGE_THIS_PASSWORD"      # Password to join server (Leave empty for no password)
       SERVER_ADMIN_PASSWORD: "CHANGE_THIS_ADMIN"   # Password for in-game admin commands
