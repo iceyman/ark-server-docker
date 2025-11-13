@@ -1,87 +1,70 @@
-# **⚓ ASA Dedicated Server (Docker/Wine)**
+# **🐳 ARK: Survival Ascended Dedicated Server \- Dockerized**
 
-A highly stable, crossplay-enabled **Ark: Survival Ascended (ASA)** dedicated server running on Linux via **Docker and Wine**. This solution resolves common stability issues and simplifies deployment and configuration.
+This project provides a robust, self-maintaining, and highly configurable Docker container for running an ARK: Survival Ascended (ASA) dedicated server on Linux using Wine.
 
-## **✨ Features**
+## **✨ Quick Start**
 
-* **One-File Setup:** All configuration in a single docker-compose.yml.  
-* **Stability Fixes:** Includes the necessary kernel sysctls fix to prevent crashes in a Linux/Wine environment.  
-* **Dynamic Configuration:** Customize rates, passwords, map, and mode via environment variables.  
-* **Mod Support:** Automated download and setup for CurseForge Mod IDs.  
-* **Crossplay:** Fully configured for both Steam and Xbox/Microsoft Store users.  
-* **Self-Maintenance:** Automatic daily backups and cleanup of server configuration files.  
-* **Access Control:** Easy player whitelisting via the Whitelist.txt file.
+Follow these steps to get your server running within minutes.
 
-## **🚀 Quick Start (Using Pre-built Image)**
+### **1\. ⚙️ Preparation**
 
-This guide assumes you have **Docker** and **Docker Compose (v2)** installed on your Linux server.
+Create a new folder for your server (e.g., asa-docker). Inside that folder, create or modify the following files.
 
-### **1\. Preparation**
+| File Name | Purpose |
+| :---- | :---- |
+| docker-compose.yml | The primary configuration file, defines server name, passwords, ports, and rates. **You must edit this file.** |
+| serverdata (Folder) | This folder will be created automatically and stores the game installation, saved data, and configuration files. |
+| Whitelist.txt | (Optional) Place Steam IDs here to enable whitelisting. |
 
-1. **Clone the repository:**  
-   git clone \[https://github.com/iceyman/ark-server-docker.git\](https://github.com/iceyman/ark-server-docker.git)  
-   cd ark-server-docker
+### **2\. 🚀 Launching the Server**
 
-2. **Configure docker-compose.yml:**  
-   * Edit the docker-compose.yml file and customize all the environment variables (especially SERVER\_NAME, SERVER\_ADMIN\_PASSWORD, and MOD\_LIST).  
-3. **Create Volume:** The game files and saved data will be stored in a local directory named serverdata. Create this folder:  
-   mkdir serverdata
+Once you have customized docker-compose.yml, run the following command in the same directory:
 
-### **2\. Launching the Server**
+docker compose up \-d
 
-The server uses the pre-built image from GHCR, so there is no local build step.
+This command will automatically:
 
-1. **Start the container:**  
-   docker compose up \-d
+1. Pull the latest image (ark-server-docker-dev:latest) from GHCR.  
+2. Create the asa-dedicated container.  
+3. Execute the startup script, which handles game installation, mod download, configuration file generation, and server launch.
 
-   This command will pull the latest stable image (ark-server-docker:latest), create the volume, and start the server.  
-2. Monitor the Startup:  
-   Check the logs. The first run will take a significant amount of time as it downloads the 80GB+ game files via SteamCMD.  
-   docker compose logs \-f
+To view the server logs in real-time:
 
-## **⚙️ Configuration Details**
+docker logs \-f asa-dedicated
 
-All essential settings are managed via the environment block in docker-compose.yml.
+To stop the server:
 
-### **Ports**
+docker compose down
 
-| Environment Variable | Default | Purpose |
+## **📝 Configuration (docker-compose.yml)**
+
+The core configuration is handled via environment variables in docker-compose.yml.
+
+### **Essential Settings:**
+
+| Variable | Description | Action Required |
 | :---- | :---- | :---- |
-| GAME\_PORT | 7777 | **Primary Game Port** (connects players) |
-| QUERY\_PORT | 27015 | **Steam Query Port** (server list visibility) |
-| RCON\_PORT | 27020 | **RCON Port** (for management tools) |
+| SERVER\_NAME | Name displayed in the ARK server browser. | Customize |
+| SERVER\_PASSWORD | Password required to join the game. | **MUST CHANGE** |
+| SERVER\_ADMIN\_PASSWORD | Password for in-game admin commands. | **MUST CHANGE** |
+| SERVER\_MAP | e.g., TheIsland\_WP (The Island), ScorchedEarth\_WP. | Customize |
+| MOD\_LIST | Comma-separated list of CurseForge Mod IDs (e.g., "900000,900001"). | Customize |
 
-**Note:** Since network\_mode: host is used, ensure your server's firewall (e.g., UFW) allows UDP traffic on these ports.
+### **Access Control (Whitelisting)**
 
-### **Mods**
+The server is configured to check for a Whitelist.txt file in your ./serverdata/ShooterGame/Saved/Config/WindowsServer/ directory.
 
-Set the MOD\_LIST variable with comma-separated CurseForge IDs.
+1. **To enable the Whitelist:** Place one Steam ID per line in Whitelist.txt.  
+2. **To disable the Whitelist:** Leave Whitelist.txt empty.
 
-| Variable | Example | Description |
-| :---- | :---- | :---- |
-| MOD\_LIST | "939228,928597" | Add CurseForge Mod IDs here. Leave empty ("") to run vanilla. |
+If the file is not empty, the script automatically adds the critical \-ServerAllowList argument to the launch command.
 
-### **Access Control (Whitelisting & Bans)**
+## **🛠 Stability and Maintenance Features**
 
-The server is configured to check for a Whitelist.txt file in your configuration volume (./serverdata/ShooterGame/Saved/Config/WindowsServer).
+This container includes several features for long-term stability:
 
-* **To Whitelist Players:**  
-  1. Create the file inside your server volume: ./serverdata/ShooterGame/Saved/Config/WindowsServer/Whitelist.txt  
-  2. Add one player Steam/Xbox ID per line (no commas, no names).  
-  3. If this file contains any IDs, the server will automatically enable the whitelist.  
-* To Ban Players:  
-  The server also supports ./serverdata/ShooterGame/Saved/Config/WindowsServer/BanList.txt. Add one banned player ID per line.
-
-## **🛠 Troubleshooting & Maintenance**
-
-### **How to Update the Server**
-
-To update the ASA game files to the latest version, simply restart the container. The startup script runs SteamCMD \+app\_update 2430930 validate every time.
-
-docker compose restart
-
-### **Server Lag / Lost Resources**
-
-If you experience resource despawns, severe lag, or mods failing, this is often due to ARK's "hibernation" feature. This has been preemptively solved by the server's launch argument:
-
-* ?PreventHibernation=True (In ADDITIONAL\_ARGS)
+* **Graceful Shutdown (init: true):** The container uses the tini init system to ensure a clean shutdown when docker compose down is executed, preventing corrupted saves.  
+* **Kernel Fixes (sysctls):** Required Linux kernel settings (vm.max\_map\_count) are automatically applied to prevent crashes related to Ark's memory usage in the Wine environment.  
+* **Automatic Config Backup:** Every time the container starts, copies of Game.ini and GameUserSettings.ini are saved to ./serverdata/.../Backup/.  
+* **Backup Cleanup:** Backups older than 30 days are automatically deleted to prevent the server volume from filling up.  
+* **Hibernation Prevention:** The launch argument ?PreventHibernation=True is included to prevent the server from freezing when no players are logged in.
