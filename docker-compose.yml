@@ -1,18 +1,25 @@
-#version: '3.9'
+version: '3.9'
 
 services:
   asa-dedicated:
-    # IMPORTANT: Reference the stable production tag for reliability.
-    image: ghcr.io/iceyman/ark-server-docker:latest
+    # IMPORTANT: Replace this with the path to your Docker image
+    image: YOUR_IMAGE_HERE
     container_name: asa-dedicated
     restart: unless-stopped
     init: true # Use Tini init system for graceful shutdowns and zombie process prevention.
+    privileged: true
+    # CRITICAL: Linux kernel settings required for Ark Ascended stability on Wine.
+    # If your host kernel is older, you may need to set these on the host instead.
+    # sysctls:
+    #   net.core.somaxconn: 65535
+    #   net.ipv4.ip_local_port_range: "1024 65535"
+    #   vm.max_map_count: 262144
 
     ports:
       # Game Client (Default: 7777 UDP)
       - "7777:7777/udp"
       # Steam Query Port (Default: 27015 UDP)
-      - "27015:27015/udp"
+      - "27016:27016/udp"
       # RCON Port (Default: 27020 TCP) - Only needed if using RCON tools
       - "27020:27020/tcp"
 
@@ -20,38 +27,41 @@ services:
       # Mount the host directory for persistent game data and config files
       - ./serverdata:/home/steam/server
 
-    # Set the game installation path (must match GAME_DIR in Dockerfile)
     environment:
       # --- ESSENTIAL SERVER SETTINGS ---
-      SERVER_NAME: "My Awesome ASA Server"
-      SERVER_PASSWORD: "MUST_BE_SECURE" # <-- CHANGE THIS
-      SERVER_ADMIN_PASSWORD: "MUST_BE_SUPER_SECRET" # <-- CHANGE THIS
+      SERVER_NAME: "My Awesome ARK Server"
+      SERVER_PASSWORD: "YOUR_SERVER_PASSWORD"    # <-- CHANGE THIS
+      SERVER_ADMIN_PASSWORD: "YOUR_ADMIN_PASSWORD" # <-- CHANGE THIS
       SERVER_MAP: "TheIsland_WP" # Use _WP suffix for the main map.
+
+      # --- SERVER MODE (ADDED) ---
+      SERVER_MODE: "PvE" # Set to "PvE" or "PvP"
 
       # --- PORTS (Match the 'ports' section above) ---
       GAME_PORT: 7777
-      QUERY_PORT: 27015
+      QUERY_PORT: 27016
       RCON_PORT: 27020
 
       # --- MODS (Comma-separated CurseForge Mod IDs) ---
-      MOD_LIST: "" # Example: "900000,900001"
+      MOD_LIST: "MOD_ID_1,MOD_ID_2" # Example: "900000,900001"
 
       # --- ADVANCED LAUNCH ARGUMENTS ---
-      ADDITIONAL_ARGS: "-crossplay -ForceModUpdate ?PreventHibernation=True"
-      
+      ADDITIONAL_ARGS: "-crossplay -ForceModUpdate &PreventHibernation=True"
+
       # --- RATE MULTIPLIERS (Adjust to your preferred difficulty/speed) ---
       TAMING_SPEED: 5.0
-      HARVEST_AMOUNT: 3.0
+      HARVEST_MULTIPLIER: 3.0
       XP_MULTIPLIER: 2.0
-      MAX_PLAYERS: 70
-      
+      MAX_PLAYERS: 20
+
       # --- BREEDING MULTIPLIERS ---
       MATURATION_SPEED: 10.0
-      EGG_HATCH_SPEED: 10.0
+      HATCHING_SPEED: 10.0
       BABY_FOOD_CONSUMPTION: 0.5
       BABY_CUDDLE_INTERVAL: 0.1
       BABY_IMPRINTING_SCALE: 1.0
       BABY_IMPRINT_AMOUNT: 1.0
+      BABY_STAMINA_GAIN: 1.0
 
     # Health Check ensures Docker knows when the server is actually ready to play.
     healthcheck:
