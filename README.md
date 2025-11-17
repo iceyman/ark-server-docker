@@ -78,9 +78,9 @@ All server configuration is handled in the environment: block of your docker-com
 
 Variable,Default Value,Description
 Essential,,
-SERVER_NAME,"""Iceys Dino Adventures""",The name your server will display in the server list.
-SERVER_PASSWORD,"""pimylifeup""",The password players must use to join. Leave blank for no password.
-SERVER_ADMIN_PASSWORD,"""iceymidgit007""",The password used to gain admin rights in-game.
+SERVER_NAME,"""NAME""",The name your server will display in the server list.
+SERVER_PASSWORD,"""pass""",The password players must use to join. Leave blank for no password.
+SERVER_ADMIN_PASSWORD,"""pass""",The password used to gain admin rights in-game.
 SERVER_MAP,"""TheIsland_WP""",The map to load.
 SERVER_MODE,"""PvE""","Set to ""PvE"" or ""PvP""."
 MAX_PLAYERS,20,Maximum number of players allowed on the server.
