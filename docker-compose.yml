@@ -3,7 +3,7 @@ version: '3.9'
 services:
   asa-dedicated:
     # IMPORTANT: Replace this with the path to your Docker image
-    image: YOUR_IMAGE_HERE
+    image: ghcr.io/iceyman/ark-server-docker:latest
     container_name: asa-dedicated
     restart: unless-stopped
     init: true # Use Tini init system for graceful shutdowns and zombie process prevention.
