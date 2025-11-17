@@ -1,21 +1,20 @@
-# ARK: Survival Ascended (ASA) Docker Server
+# 🐳 ARK: Survival Ascended Dedicated Server - Dockerized
 
-[![Docker](https://img.shields.io/badge/Docker-blue?style=for-the-badge&logo=docker)](https://www.docker.com/)
-[![Linux](https://img.shields.io/badge/Linux-black?style=for-the-badge&logo=linux)](https://www.linux.org/)
-[![Wine](https://img.shields.io/badge/Wine-white?style=for-the-badge&logo=wine)](https://www.winehq.org/)
 
-This repository contains the necessary files to build and run a stable, high-performance dedicated server for **ARK: Survival Ascended (ASA)** using Docker.
+This project provides a robust, self-maintaining, and highly configurable Docker container for running an ARK: Survival Ascended (ASA) dedicated server on Linux using Wine.
 
-The server runs the official Windows server files on a Linux host using Wine, all managed within a container. This setup is pre-configured to handle common stability issues, mod support, and provides a simple way to manage your server using environment variables.
+This setup is pre-configured to handle common stability issues, mod support, and provides a simple way to manage your server using environment variables.
 
-## 🚀 Features
+## ✨ Features
 
 * **Fully Containerized:** Runs the entire server, including Wine, in a single Docker container.
 * **Auto-Updating:** Server (and mods) are validated and updated by SteamCMD on every container start.
 * **Easy Configuration:** All server settings, including name, passwords, and multipliers, are managed via the `docker-compose.yml` file.
 * **Mod Support:** Simply provide a comma-separated list of CurseForge Mod IDs.
 * **Stability Patched:** Includes logic to fix common ASA on Wine stability issues and client-side bugs (like the session name display).
-* **Health Check:** The `docker-compose.yml` includes a health check to ensure Docker knows when your server is *actually* running.
+* **Config Backups:** Automatically creates timestamped backups of your `.ini` files on every startup.
+* **Automatic Cleanup:** Deletes config backups older than 30 days to save space.
+* **Health Check:** A built-in health check ensures Docker knows when your server is *actually* ready to play.
 
 ## ⚠️ Prerequisites
 
@@ -35,70 +34,62 @@ ARK on Wine requires a higher-than-default `vm.max_map_count` value to avoid cra
     ```bash
     echo "vm.max_map_count=262144" | sudo tee -a /etc/sysctl.conf
     ```
+> **Note:** If you get an `OCI runtime create failed... sysctl "vm.max_map_count" is not in a separate kernel namespace` error, it means your host kernel is too old. The steps above are the **required fix**.
 
-> **Note:** The included `docker-compose.yml` has the `sysctls` block commented out. If your host kernel is modern (5.4+), you can try uncommenting it. If you get an error, use the host machine method above and keep it commented.
+## 🏁 Quick Start (For Server Admins)
 
-## 🏁 Quick Start for Users
+Follow these steps to get your server running within minutes.
 
-This will get your server running using the pre-built Docker image.
+### 1. ⚙️ Preparation
 
-1.  **Clone this Repository:**
-    ```bash
-    git clone [https://github.com/iceyman/ark-server-docker.git](https://github.com/iceyman/ark-server-docker.git)
-    cd ark-server-docker
-    ```
 
-2.  **Ensure Prerequisites:** (See the `vm.max_map_count` setup above).
-
-3.  **Edit `docker-compose.yml`:**
-    Open the `docker-compose.yml` file and edit the `environment` variables to your liking. At a minimum, you **must** change:
-    * `SERVER_NAME`
-    * `SERVER_PASSWORD`
-    * `SERVER_ADMIN_PASSWORD`
-
-4.  **Pull the latest Image:**
-    This downloads the pre-built server image.
-    ```bash
-    docker-compose pull
-    ```
-
-5.  **Start the Server:**
-    ```bash
-    docker-compose up -d
-    ```
-
-Your server will now start in the background. The *first startup* will take a long time (15-30+ minutes) as it needs to download and install the entire ARK server. Subsequent starts will be much faster.
-
-You can view the server's startup progress and logs by running:
+Clone this repository to your server:
 ```bash
-docker-compose logs -f
+git clone [https://github.com/iceyman/ark-server-docker.git](https://github.com/iceyman/ark-server-docker.git)
+cd ark-server-docker
 
-🔧 Server Configuration (Environment Variables)
-All server configuration is handled in the environment: block of your docker-compose.yml file.
+2. 🚀 Launching the Server
+Edit docker-compose.yml: Open the file and customize the environment variables. At a minimum, you must change SERVER_PASSWORD and SERVER_ADMIN_PASSWORD.
 
-Variable,Default Value,Description
-Essential,,
-SERVER_NAME,"""NAME""",The name your server will display in the server list.
-SERVER_PASSWORD,"""pass""",The password players must use to join. Leave blank for no password.
-SERVER_ADMIN_PASSWORD,"""pass""",The password used to gain admin rights in-game.
-SERVER_MAP,"""TheIsland_WP""",The map to load.
-SERVER_MODE,"""PvE""","Set to ""PvE"" or ""PvP""."
-MAX_PLAYERS,20,Maximum number of players allowed on the server.
-Ports,,
-GAME_PORT,7777,Must match the first port in the ports: section.
-QUERY_PORT,27016,Must match the second port in the ports: section.
-RCON_PORT,27020,Must match the third port in the ports: section.
-Mods & Advanced,,
-MOD_LIST,(example list),Comma-separated list of CurseForge Mod IDs.
-ADDITIONAL_ARGS,"""-crossplay -ForceModUpdate &PreventHibernation=True""","Advanced launch arguments. Use & for map args, flags start with -."
-Rates & Multipliers,,
-TAMING_SPEED,5.0,Taming speed multiplier.
-HARVEST_MULTIPLIER,3.0,Harvest amount multiplier.
-XP_MULTIPLIER,2.0,Experience multiplier.
-MATURATION_SPEED,10.0,Baby maturation speed.
-HATCHING_SPEED,10.0,Egg hatching speed.
-BABY_FOOD_CONSUMPTION,0.5,Baby food consumption (lower is slower).
-BABY_CUDDLE_INTERVAL,0.1,Time between baby imprinting cuddles (lower is faster).
-BABY_IMPRINTING_SCALE,1.0,Stat bonus scale from imprinting.
-BABY_IMPRINT_AMOUNT,1.0,Imprint amount per cuddle.
-BABY_STAMINA_GAIN,1.0,Stamina gain multiplier for babies.
+Pull the latest image:
+
+Bash
+
+docker-compose pull
+Start the Server:
+
+Bash
+
+docker-compose up -d
+The server will now start in the background. The first startup will take a long time (15-30+ minutes) as it needs to download and install the entire ARK server.
+
+To view the server logs in real-time: docker-compose logs -f
+
+To stop the server: docker-compose down
+
+### **Essential Settings:**
+
+
+| Variable | Description | Action Required |
+| :--- | :--- | :--- |
+| `SERVER_NAME` | Name displayed in the ARK server browser. | Customize |
+| `SERVER_PASSWORD` | Password required to join the game. | **MUST CHANGE** |
+| `SERVER_ADMIN_PASSWORD`| Password for in-game admin commands. | **MUST CHANGE** |
+| `SERVER_MAP` | e.g., `TheIsland_WP`, `ScorchedEarth_WP`. | Customize |
+| `SERVER_MODE` | Set to `"PvE"` or `"PvP"`. | Customize |
+| `MAX_PLAYERS` | Maximum number of players allowed on the server. | Customize |
+| `MOD_LIST` | Comma-separated list of CurseForge Mod IDs. | Customize |
+
+### **Ports (Match the `ports:` section):**
+
+| Variable | Description |
+| :--- | :--- |
+| `GAME_PORT` | `7777` (Game Client) |
+| `QUERY_PORT` | `27016` (Steam Query) |
+| `RCON_PORT` | `27020` (RCON Tools) |
+
+### **Advanced Launch Arguments:**
+
+| Variable | Description |
+| :--- | :--- |
+| `ADDITIONAL_ARGS`| Advanced launch arguments. Use `&` for map args (e.g., `&PreventHibernation=True`) and flags start with `-` (e.g., `-crossplay`). |
